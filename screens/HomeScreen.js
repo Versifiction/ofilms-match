@@ -1,4 +1,5 @@
-import React from "react";
+import React, { Component } from "react";
+import axios from "axios";
 import {
   Button,
   StyleSheet,
@@ -6,14 +7,17 @@ import {
   ImageBackground,
   View,
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
+  Picker
 } from "react-native";
 import * as Font from "expo-font";
 
-export default class HomeScreen extends React.Component {
+export default class HomeScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      categorieChosen: "",
+      allCategories: [],
       isFontLoaded: false
     };
   }
@@ -26,10 +30,25 @@ export default class HomeScreen extends React.Component {
     this.setState({ isFontLoaded: true });
   }
 
+  async componentDidMount() {
+    try {
+      const dataMoviesGenres = await axios.get(
+        "https://api.themoviedb.org/3/genre/movie/list?api_key=381e8c936f62f2ab614e9f29cad6630f&language=fr"
+      );
+
+      this.setState({
+        allCategories: dataMoviesGenres.data.genres
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   render() {
+    const { allCategories, categorieChosen, isFontLoaded } = this.state;
     return (
       <>
-        {this.state.isFontLoaded ? (
+        {isFontLoaded ? (
           <View style={styles.container}>
             <ImageBackground
               source={{
@@ -43,9 +62,35 @@ export default class HomeScreen extends React.Component {
                 <Text style={styles.subtitle}>Match</Text>
                 <Text style={styles.intro}>
                   Bienvenue sur l'appli O'Films Match,{"\n"} où vous pouvez
-                  liker ou non des films en fonction de vos goûts
+                  liker ou non des films en fonction de vos goûts.
                 </Text>
+                <Text style={styles.intro}>
+                  Avant de commencer à matcher des films, veuillez sélectionner
+                  ci-dessous au moins une catégorie.
+                </Text>
+                <Text style={styles.intro}>La catégorie choisie :</Text>
+                <Text style={styles.chosen}>{categorieChosen}</Text>
+                <Picker
+                  selectedValue={categorieChosen}
+                  style={{
+                    height: 100,
+                    width: "100%"
+                  }}
+                  onValueChange={(itemValue, itemIndex) =>
+                    this.setState({ categorieChosen: itemValue })
+                  }
+                >
+                  {allCategories.map(category => (
+                    <Picker.Item
+                      style={{ backgroundColor: "white" }}
+                      label={category.name}
+                      key={category.id}
+                      value={category.name}
+                    />
+                  ))}
+                </Picker>
                 <TouchableOpacity
+                  disabled={categorieChosen.length === 0}
                   onPress={() => Alert.alert("Vous avez cliqué sur le bouton")}
                 >
                   <View style={styles.button}>
@@ -56,9 +101,7 @@ export default class HomeScreen extends React.Component {
             </ImageBackground>
           </View>
         ) : (
-          <View>
-            <Text>Chargement en cours</Text>
-          </View>
+          <Text>Loading</Text>
         )}
       </>
     );
@@ -93,14 +136,18 @@ const styles = StyleSheet.create({
   },
   intro: {
     color: "#95878B",
-    marginTop: 50,
+    marginTop: 20,
+    textAlign: "center"
+  },
+  chosen: {
+    color: "#0CD0FC",
     textAlign: "center"
   },
   button: {
     backgroundColor: "#0CD0FC",
     alignSelf: "center",
     justifyContent: "center",
-    marginTop: 50,
+    marginTop: 100,
     height: 50,
     width: "50%"
   },
