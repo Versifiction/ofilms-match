@@ -9,17 +9,19 @@ import {
   TouchableOpacity,
   Picker
 } from "react-native";
-// import {  AppLoading } from "expo";
+import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
 
 export default class HomeScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      categorieChosen: "-",
+      categorieChosenName: "-",
+      categorieChosenId: "-",
       allCategories: [],
       isFontLoaded: false,
-      started: false
+      started: false,
+      randomMovie: []
     };
     this.toggleStart = this.toggleStart.bind(this);
   }
@@ -50,16 +52,56 @@ export default class HomeScreen extends Component {
     }
   }
 
-  toggleStart() {
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.categorieChosenName !== prevState.categorieChosenName) {
+      if (this.state.categorieChosenName !== "-") {
+        this.setState({
+          categorieChosenId: this.state.allCategories.find(
+            c => c.name === this.state.categorieChosenName
+          ).id
+        });
+      } else {
+        this.setState({
+          categorieChosenId: "-"
+        });
+      }
+    }
+  }
+
+  async toggleStart() {
     this.setState({
       started: !this.state.started
     });
+
+    const randomPage = Math.floor(Math.random() * 50) + 1;
+    const randomIndex = Math.floor(Math.random() * 20) + 1;
+
+    if (this.state.started) {
+      try {
+        const dataMoviesGenres = await axios.get(
+          `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=fr-FR&include_adult=false&with_genres=${categorieChosenId}&vote_average.gte=7&page=${randomPage}`
+        );
+
+        const randomMovie = dataMoviesGenres.results[randomIndex];
+
+        this.setState({
+          randomMovie: randomMovie
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    console.log("API KEY ", API_KEY);
+    console.log("randomPage ", randomPage);
+    console.log("randomIndex ", randomIndex);
   }
 
   render() {
     const {
       allCategories,
-      categorieChosen,
+      categorieChosenName,
+      categorieChosenId,
       isFontLoaded,
       started
     } = this.state;
@@ -86,16 +128,16 @@ export default class HomeScreen extends Component {
                   ci-dessous au moins une catégorie.
                 </Text>
                 <Text style={styles.intro}>La catégorie choisie :</Text>
-                <Text style={styles.chosen}>{categorieChosen}</Text>
+                <Text style={styles.chosen}>{categorieChosenName}</Text>
                 <Picker
                   itemStyle={{ color: "white" }}
-                  selectedValue={categorieChosen}
+                  selectedValue={categorieChosenName}
                   style={{
                     height: 100,
                     width: "100%"
                   }}
                   onValueChange={(itemValue, itemIndex) =>
-                    this.setState({ categorieChosen: itemValue })
+                    this.setState({ categorieChosenName: itemValue })
                   }
                 >
                   <Picker.Item label="Sélectionnez une catégorie" value="-" />
@@ -108,10 +150,10 @@ export default class HomeScreen extends Component {
                   ))}
                 </Picker>
                 <TouchableOpacity
-                  // disabled={categorieChosen.length === 0}
+                  // disabled={categorieChosenName.length === 0}
                   style={styles.buttonContainer}
                   onPress={() => {
-                    categorieChosen.length === 0
+                    categorieChosenName === "-"
                       ? alert("Veuillez choisir une catégorie")
                       : this.toggleStart();
                   }}
@@ -124,13 +166,14 @@ export default class HomeScreen extends Component {
             ) : (
               <>
                 <View>
-                  <Image
+                  <Text style={styles.chosen}>{randomMovie.title}</Text>
+                  {/* <Image
                     style={{ width: "100%", height: 400, marginTop: 50 }}
                     source={{
                       uri:
                         "https://facebook.github.io/react-native/img/tiny_logo.png"
                     }}
-                  ></Image>
+                  ></Image> */}
                   <TouchableOpacity
                     style={styles.buttonContainer}
                     onPress={this.toggleStart}
