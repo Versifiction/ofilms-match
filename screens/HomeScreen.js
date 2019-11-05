@@ -76,20 +76,19 @@ export default class HomeScreen extends Component {
     const randomPage = Math.floor(Math.random() * 50) + 1;
     const randomIndex = Math.floor(Math.random() * 20) + 1;
 
-    if (this.state.started) {
-      try {
-        const dataMoviesGenres = await axios.get(
-          `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=fr-FR&include_adult=false&with_genres=${categorieChosenId}&vote_average.gte=7&page=${randomPage}`
-        );
+    try {
+      const dataMoviesGenres = await axios.get(
+        `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=fr-FR&include_adult=false&with_genres=${this.state.categorieChosenId}&vote_average.gte=7&page=${randomPage}`
+      );
 
-        const randomMovie = dataMoviesGenres.results[randomIndex];
+      const randomItem = dataMoviesGenres.results[randomIndex];
+      console.log("dataMoviesGenres ", dataMoviesGenres);
 
-        this.setState({
-          randomMovie: randomMovie
-        });
-      } catch (error) {
-        console.log(error);
-      }
+      this.setState({
+        randomMovie: randomItem
+      });
+    } catch (error) {
+      console.log("error ", error);
     }
 
     console.log("API KEY ", API_KEY);
@@ -103,7 +102,8 @@ export default class HomeScreen extends Component {
       categorieChosenName,
       categorieChosenId,
       isFontLoaded,
-      started
+      started,
+      randomMovie
     } = this.state;
     if (isFontLoaded) {
       return (
@@ -166,7 +166,7 @@ export default class HomeScreen extends Component {
             ) : (
               <>
                 <View>
-                  <Text style={styles.chosen}>{randomMovie.title}</Text>
+                  <Text style={styles.chosen}>{randomMovie}</Text>
                   {/* <Image
                     style={{ width: "100%", height: 400, marginTop: 50 }}
                     source={{
