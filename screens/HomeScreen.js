@@ -7,7 +7,10 @@ import {
   ImageBackground,
   View,
   TouchableOpacity,
-  Picker
+  Picker,
+  Animated,
+  Easing,
+  ActivityIndicator
 } from "react-native";
 import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
@@ -21,9 +24,13 @@ export default class HomeScreen extends Component {
       allCategories: [],
       isFontLoaded: false,
       started: false,
-      randomMovie: []
+      randomMovie: [],
+      imageRandomMovie: "",
+      pending: false
     };
     this.toggleStart = this.toggleStart.bind(this);
+    this.animatedValueLeft = new Animated.Value(0);
+    this.animatedValueRight = new Animated.Value(0);
   }
 
   async componentWillMount() {
@@ -50,6 +57,9 @@ export default class HomeScreen extends Component {
     } catch (error) {
       console.log(error);
     }
+
+    this.animateLeft();
+    this.animateRight();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -68,28 +78,49 @@ export default class HomeScreen extends Component {
     }
   }
 
-  async toggleStart() {
+  animateLeft() {
+    this.animatedValueLeft.setValue(0);
+    Animated.timing(this.animatedValueLeft, {
+      toValue: 1,
+      duration: 2000,
+      easing: Easing.linear
+    }).start(() => this.animateLeft());
+  }
+
+  animateRight() {
+    this.animatedValueRight.setValue(0);
+    Animated.timing(this.animatedValueRight, {
+      toValue: 1,
+      duration: 2000,
+      easing: Easing.linear
+    }).start(() => this.animateRight());
+  }
+
+  toggleStart() {
     this.setState({
-      started: !this.state.started
+      started: !this.state.started,
+      pending: true
     });
 
-    const randomPage = Math.floor(Math.random() * 50) + 1;
+    const randomPage = Math.floor(Math.random() * 30) + 1;
     const randomIndex = Math.floor(Math.random() * 20) + 1;
 
-    try {
-      const dataMoviesGenres = await axios.get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=fr-FR&include_adult=false&with_genres=${this.state.categorieChosenId}&vote_average.gte=7&page=${randomPage}`
-      );
-
-      const randomItem = dataMoviesGenres.results[randomIndex];
-      console.log("dataMoviesGenres ", dataMoviesGenres);
-
-      this.setState({
-        randomMovie: randomItem
-      });
-    } catch (error) {
-      console.log("error ", error);
-    }
+    axios
+      .get(
+        `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=fr-FR&include_adult=false&with_genres=${this.state.categorieChosenId}&sort_by=popularity.desc&page=${randomPage}`
+      )
+      .then(res => {
+        const randomItem = res.data.results[randomIndex];
+        this.setState({
+          randomMovie: randomItem,
+          imageRandomMovie: randomItem.poster_path,
+          pending: false
+        });
+        // console.log("randomitem ", randomItem);
+        console.log("imageRandomMovie ", this.state.imageRandomMovie);
+        console.log("randomitem poster ", randomItem.poster_path);
+      })
+      .catch(err => console.log("err ", err));
 
     console.log("API KEY ", API_KEY);
     console.log("randomPage ", randomPage);
@@ -103,8 +134,18 @@ export default class HomeScreen extends Component {
       categorieChosenId,
       isFontLoaded,
       started,
-      randomMovie
+      randomMovie,
+      imageRandomMovie,
+      pending
     } = this.state;
+    const marginLeft = this.animatedValueLeft.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 125]
+    });
+    const marginRight = this.animatedValueRight.interpolate({
+      inputRange: [0, 1],
+      outputRange: [125, 0]
+    });
     if (isFontLoaded) {
       return (
         <View style={styles.container}>
@@ -165,23 +206,79 @@ export default class HomeScreen extends Component {
               </View>
             ) : (
               <>
-                <View>
-                  <Text style={styles.chosen}>{randomMovie}</Text>
-                  {/* <Image
-                    style={{ width: "100%", height: 400, marginTop: 50 }}
-                    source={{
-                      uri:
-                        "https://facebook.github.io/react-native/img/tiny_logo.png"
-                    }}
-                  ></Image> */}
-                  <TouchableOpacity
-                    style={styles.buttonContainer}
-                    onPress={this.toggleStart}
-                  >
-                    <View style={styles.button}>
-                      <Text style={styles.buttonText}>Arrêter</Text>
+                <View style={{ marginTop: 30 }}>
+                  {pending ? (
+                    <View
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center"
+                      }}
+                    >
+                      <ActivityIndicator size="large" color="#0CD0FC" />
                     </View>
-                  </TouchableOpacity>
+                  ) : (
+                    <>
+                      <Text style={styles.randomMovieTitle}>
+                        {randomMovie.title}
+                      </Text>
+                      <View
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center"
+                        }}
+                      >
+                        <Image
+                          style={{ width: 200, height: 300, marginTop: 30 }}
+                          source={{
+                            uri: `http://image.tmdb.org/t/p/w200${imageRandomMovie}`
+                          }}
+                        ></Image>
+                      </View>
+                      {/* <View
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          height: 50,
+                          alignContent: "space-between"
+                        }}
+                      >
+                        <View style={styles.arrowLeft}>
+                          <Animated.View
+                            style={{
+                              marginRight,
+                              height: "100%",
+                              marginTop: 10,
+                              width: 50,
+                              backgroundColor: "red"
+                            }}
+                          />
+                        </View>
+                        <View style={styles.arrowRight}>
+                          <Animated.View
+                            style={{
+                              marginLeft,
+                              height: "100%",
+                              marginTop: 10,
+                              width: 50,
+                              backgroundColor: "green"
+                            }}
+                          />
+                        </View>
+                      </View> */}
+                      <TouchableOpacity
+                        style={styles.buttonStartedContainer}
+                        onPress={this.toggleStart}
+                      >
+                        <View style={styles.button}>
+                          <Text style={styles.buttonText}>
+                            Revenir à l'accueil{" "}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </View>
               </>
             )}
@@ -252,5 +349,25 @@ const styles = StyleSheet.create({
     color: "#95878B",
     marginTop: 50,
     textAlign: "center"
+  },
+  randomMovieTitle: {
+    marginTop: 30,
+    fontWeight: "bold",
+    fontSize: 20,
+    textTransform: "uppercase",
+    color: "#0CD0FC",
+    textAlign: "center"
+  },
+  buttonStartedContainer: {
+    marginTop: 50,
+    width: 200
+  },
+  arrowLeft: {
+    height: 40,
+    width: "50%"
+  },
+  arrowRight: {
+    height: 40,
+    width: "50%"
   }
 });
