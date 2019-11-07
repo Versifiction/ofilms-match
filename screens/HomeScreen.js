@@ -34,15 +34,11 @@ export default class HomeScreen extends Component {
   }
 
   async componentWillMount() {
-    try {
-      await Font.loadAsync({
-        "JosefinSans-Regular": require("../assets/fonts/JosefinSans-Regular.ttf"),
-        "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf")
-      });
-      this.setState({ isFontLoaded: true });
-    } catch (error) {
-      console.log("Font pas chargée ", error);
-    }
+    await Font.loadAsync({
+      "JosefinSans-Regular": require("../assets/fonts/JosefinSans-Regular.ttf"),
+      "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf")
+    });
+    this.setState({ isFontLoaded: true });
   }
 
   async componentDidMount() {
