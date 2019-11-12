@@ -1,12 +1,14 @@
-import React from 'react';
-import { createAppContainer, createSwitchNavigator } from 'react-navigation';
+import { createStackNavigator, createAppContainer } from "react-navigation";
+import Home from "../screens/HomeScreen";
+import Match from "../screens/MatchScreen";
+import Test from "../screens/TestScreen";
 
-import MainTabNavigator from './MainTabNavigator';
+const AppNavigator = createStackNavigator({
+  Home: { screen: Home },
+  Match: { screen: Match },
+  Test: { screen: Test }
+});
 
-export default createAppContainer(
-  createSwitchNavigator({
-    // You could add another route here for authentication.
-    // Read more at https://reactnavigation.org/docs/en/auth-flow.html
-    Main: MainTabNavigator,
-  })
-);
+const App = createAppContainer(AppNavigator);
+
+export default App;

@@ -8,8 +8,8 @@ import {
   View,
   TouchableOpacity,
   Picker,
-  Animated,
   Easing,
+  ScrollView,
   ActivityIndicator
 } from "react-native";
 import { API_KEY } from "react-native-dotenv";
@@ -23,21 +23,20 @@ export default class HomeScreen extends Component {
       categorieChosenId: "-",
       allCategories: [],
       isFontLoaded: false,
-      started: false,
       randomMovie: [],
       imageRandomMovie: "",
       pending: false
     };
-    this.toggleStart = this.toggleStart.bind(this);
-    this.animatedValueLeft = new Animated.Value(0);
-    this.animatedValueRight = new Animated.Value(0);
+    this.start = this.start.bind(this);
   }
 
   async componentWillMount() {
-    await Font.loadAsync({
-      "JosefinSans-Regular": require("../assets/fonts/JosefinSans-Regular.ttf"),
-      "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf")
-    });
+    await Promise.all([
+      await Font.loadAsync({
+        "JosefinSans-Regular": require("../assets/fonts/JosefinSans-Regular.ttf"),
+        "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf")
+      })
+    ]);
     this.setState({ isFontLoaded: true });
   }
 
@@ -54,8 +53,8 @@ export default class HomeScreen extends Component {
       console.log(error);
     }
 
-    this.animateLeft();
-    this.animateRight();
+    // this.animateLeft();
+    // this.animateRight();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -74,27 +73,26 @@ export default class HomeScreen extends Component {
     }
   }
 
-  animateLeft() {
-    this.animatedValueLeft.setValue(0);
-    Animated.timing(this.animatedValueLeft, {
-      toValue: 1,
-      duration: 2000,
-      easing: Easing.linear
-    }).start(() => this.animateLeft());
-  }
+  // animateLeft() {
+  //   this.animatedValueLeft.setValue(0);
+  //   Animated.timing(this.animatedValueLeft, {
+  //     toValue: 1,
+  //     duration: 2000,
+  //     easing: Easing.linear
+  //   }).start(() => this.animateLeft());
+  // }
 
-  animateRight() {
-    this.animatedValueRight.setValue(0);
-    Animated.timing(this.animatedValueRight, {
-      toValue: 1,
-      duration: 2000,
-      easing: Easing.linear
-    }).start(() => this.animateRight());
-  }
+  // animateRight() {
+  //   this.animatedValueRight.setValue(0);
+  //   Animated.timing(this.animatedValueRight, {
+  //     toValue: 1,
+  //     duration: 2000,
+  //     easing: Easing.linear
+  //   }).start(() => this.animateRight());
+  // }
 
-  toggleStart() {
+  start() {
     this.setState({
-      started: !this.state.started,
       pending: true
     });
 
@@ -113,14 +111,14 @@ export default class HomeScreen extends Component {
           pending: false
         });
         // console.log("randomitem ", randomItem);
-        console.log("imageRandomMovie ", this.state.imageRandomMovie);
-        console.log("randomitem poster ", randomItem.poster_path);
+        // console.log("imageRandomMovie ", this.state.imageRandomMovie);
+        // console.log("randomitem poster ", randomItem.poster_path);
       })
       .catch(err => console.log("err ", err));
 
-    console.log("API KEY ", API_KEY);
-    console.log("randomPage ", randomPage);
-    console.log("randomIndex ", randomIndex);
+    // console.log("API KEY ", API_KEY);
+    // console.log("randomPage ", randomPage);
+    // console.log("randomIndex ", randomIndex);
   }
 
   render() {
@@ -128,31 +126,19 @@ export default class HomeScreen extends Component {
       allCategories,
       categorieChosenName,
       categorieChosenId,
-      isFontLoaded,
-      started,
-      randomMovie,
-      imageRandomMovie,
-      pending
+      isFontLoaded
     } = this.state;
-    const marginLeft = this.animatedValueLeft.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 125]
-    });
-    const marginRight = this.animatedValueRight.interpolate({
-      inputRange: [0, 1],
-      outputRange: [125, 0]
-    });
     if (isFontLoaded) {
       return (
         <View style={styles.container}>
-          <ImageBackground
-            source={{
-              uri:
-                "https://www.transparenttextures.com/patterns/black-linen.png"
-            }}
-            style={{ width: "100%", height: "100%" }}
-          >
-            {!started ? (
+          <ScrollView>
+            <ImageBackground
+              source={{
+                uri:
+                  "https://www.transparenttextures.com/patterns/black-linen.png"
+              }}
+              style={{ width: "100%" }}
+            >
               <View style={styles.titleContainer}>
                 <Text style={styles.title}>O'Films</Text>
                 <Text style={styles.subtitle}>Match</Text>
@@ -187,98 +173,32 @@ export default class HomeScreen extends Component {
                   ))}
                 </Picker>
                 <TouchableOpacity
-                  // disabled={categorieChosenName.length === 0}
                   style={styles.buttonContainer}
                   onPress={() => {
                     categorieChosenName === "-"
                       ? alert("Veuillez choisir une catégorie")
-                      : this.toggleStart();
+                      : this.props.navigation.navigate("Match", {
+                          categorieChosenId: categorieChosenId
+                        });
                   }}
                 >
                   <View style={styles.button}>
-                    <Text style={styles.buttonText}>Matcher</Text>
+                    <Text style={styles.buttonText}>Rechercher</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.secondButtonContainer}
+                  onPress={() => this.props.navigation.navigate("Test")}
+                >
+                  <View style={styles.button}>
+                    <Text style={styles.buttonText}>
+                      Aller sur la page Test
+                    </Text>
                   </View>
                 </TouchableOpacity>
               </View>
-            ) : (
-              <>
-                <View style={{ marginTop: 30 }}>
-                  {pending ? (
-                    <View
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center"
-                      }}
-                    >
-                      <ActivityIndicator size="large" color="#0CD0FC" />
-                    </View>
-                  ) : (
-                    <>
-                      <Text style={styles.randomMovieTitle}>
-                        {randomMovie.title}
-                      </Text>
-                      <View
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center"
-                        }}
-                      >
-                        <Image
-                          style={{ width: 200, height: 300, marginTop: 30 }}
-                          source={{
-                            uri: `http://image.tmdb.org/t/p/w200${imageRandomMovie}`
-                          }}
-                        ></Image>
-                      </View>
-                      {/* <View
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          height: 50,
-                          alignContent: "space-between"
-                        }}
-                      >
-                        <View style={styles.arrowLeft}>
-                          <Animated.View
-                            style={{
-                              marginRight,
-                              height: "100%",
-                              marginTop: 10,
-                              width: 50,
-                              backgroundColor: "red"
-                            }}
-                          />
-                        </View>
-                        <View style={styles.arrowRight}>
-                          <Animated.View
-                            style={{
-                              marginLeft,
-                              height: "100%",
-                              marginTop: 10,
-                              width: 50,
-                              backgroundColor: "green"
-                            }}
-                          />
-                        </View>
-                      </View> */}
-                      <TouchableOpacity
-                        style={styles.buttonStartedContainer}
-                        onPress={this.toggleStart}
-                      >
-                        <View style={styles.button}>
-                          <Text style={styles.buttonText}>
-                            Revenir à l'accueil{" "}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </View>
-              </>
-            )}
-          </ImageBackground>
+            </ImageBackground>
+          </ScrollView>
         </View>
       );
     }
@@ -303,14 +223,14 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
     textTransform: "uppercase",
-    alignSelf: "center",
-    fontFamily: "JosefinSans-Regular"
+    alignSelf: "center"
+    // fontFamily: "JosefinSans-Regular"
   },
   subtitle: {
     color: "#DC8873",
     fontSize: 22,
-    alignSelf: "center",
-    fontFamily: "Raleway-Regular"
+    alignSelf: "center"
+    // fontFamily: "Raleway-Regular"
   },
   intro: {
     color: "#95878B",
@@ -323,6 +243,9 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 150
+  },
+  secondButtonContainer: {
+    marginTop: 10
   },
   button: {
     backgroundColor: "#0CD0FC",
@@ -355,7 +278,7 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   buttonStartedContainer: {
-    marginTop: 50,
+    marginTop: 25,
     width: 200
   },
   arrowLeft: {
