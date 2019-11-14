@@ -8,17 +8,56 @@ import {
   View,
   TouchableOpacity,
   Picker,
-  Animated,
   Easing,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  Animated,
+  PanResponder,
+  Dimensions,
+  LayoutAnimation,
+  UIManager
 } from "react-native";
 import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
+const SWIPE_OUT_DURATION = 250;
+
 export default class MatchScreen extends Component {
+  static defaultProps = {
+    onSwipeRight: () => {
+      // this.refs.toast.show("Ajouté aux likes");
+    },
+    onSwipeLeft: () => {
+      // this.refs.toast.show("Ajouté aux dislikes");
+    }
+  };
+
   constructor(props) {
     super(props);
+
+    const position = new Animated.ValueXY();
+    const panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (event, gesture) => {
+        position.setValue({ x: gesture.dx, y: gesture.dy });
+      },
+      onPanResponderRelease: (event, gesture) => {
+        if (gesture.dx > SWIPE_THRESHOLD) {
+          console.log("swipe right");
+          this.forceSwipe("right");
+        } else if (gesture.dx < -SWIPE_THRESHOLD) {
+          console.log("swipe left");
+          this.forceSwipe("left");
+        } else {
+          this.resetPosition();
+        }
+      }
+    });
+
+    this.position = position;
+    this.toast = null;
     this.state = {
       categorieChosenId: this.props.navigation.getParam(
         "categorieChosenId",
@@ -27,7 +66,10 @@ export default class MatchScreen extends Component {
       isFontLoaded: false,
       randomMovie: [],
       imageRandomMovie: "",
-      pending: false
+      pending: false,
+      panResponder,
+      position,
+      index: 0
     };
   }
 
@@ -40,6 +82,10 @@ export default class MatchScreen extends Component {
   }
 
   async componentDidMount() {
+    this.loadMovie();
+  }
+
+  loadMovie() {
     this.setState({
       pending: true
     });
@@ -58,9 +104,6 @@ export default class MatchScreen extends Component {
           imageRandomMovie: randomItem.poster_path,
           pending: false
         });
-        // console.log("randomitem ", randomItem);
-        console.log("imageRandomMovie ", this.state.imageRandomMovie);
-        console.log("randomitem poster ", randomItem.poster_path);
       })
       .catch(err => console.log("err ", err));
   }
@@ -95,37 +138,14 @@ export default class MatchScreen extends Component {
                 }}
               ></Image>
             </View>
-            {/* <View
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          height: 50,
-                          alignContent: "space-between"
-                        }}
-                      >
-                        <View style={styles.arrowLeft}>
-                          <Animated.View
-                            style={{
-                              marginRight,
-                              height: "100%",
-                              marginTop: 10,
-                              width: 50,
-                              backgroundColor: "red"
-                            }}
-                          />
-                        </View>
-                        <View style={styles.arrowRight}>
-                          <Animated.View
-                            style={{
-                              marginLeft,
-                              height: "100%",
-                              marginTop: 10,
-                              width: 50,
-                              backgroundColor: "green"
-                            }}
-                          />
-                        </View>
-                      </View> */}
+            <TouchableOpacity
+              style={styles.buttonContainer}
+              onPress={() => this.props.navigation.navigate("Home")}
+            >
+              <View style={styles.button}>
+                <Text style={styles.buttonText}>Revenir à l'accueil </Text>
+              </View>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.buttonContainer}
               onPress={() => this.props.navigation.navigate("Home")}
@@ -222,4 +242,9 @@ const styles = StyleSheet.create({
     height: 40,
     width: "50%"
   }
+  // cardStyle: {
+  //   position: "absolute",
+  //   backgroundColor: "#232D32",
+  //   width: SCREEN_WIDTH
+  // }
 });

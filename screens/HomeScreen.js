@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
+import { Icon } from "react-native-elements";
 
 export default class HomeScreen extends Component {
   constructor(props) {
@@ -182,9 +183,14 @@ export default class HomeScreen extends Component {
                         });
                   }}
                 >
-                  <View style={styles.button}>
+                  <Icon
+                    name="chevron-right-circle"
+                    type="material-community"
+                    color="red"
+                  />
+                  {/* <View style={styles.button}>
                     <Text style={styles.buttonText}>Rechercher</Text>
-                  </View>
+                  </View> */}
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.secondButtonContainer}

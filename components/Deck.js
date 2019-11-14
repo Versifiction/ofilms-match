@@ -14,6 +14,7 @@ import {
   LayoutAnimation,
   UIManager
 } from "react-native";
+// import Toast from "react-native-simple-toast";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
@@ -21,13 +22,17 @@ const SWIPE_OUT_DURATION = 250;
 
 export default class Deck extends Component {
   static defaultProps = {
-    onSwipeRight: () => {},
-    onSwipeLeft: () => {}
+    onSwipeRight: () => {
+      // Toast.show("This is a long toast.", Toast.LONG);
+    },
+    onSwipeLeft: () => {
+      // Toast.show("This is a long toast.", Toast.LONG);
+    }
   };
 
   constructor(props) {
     super(props);
-
+    this.toast = null;
     const position = new Animated.ValueXY();
     const panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
