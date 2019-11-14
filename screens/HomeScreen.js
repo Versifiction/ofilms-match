@@ -10,11 +10,14 @@ import {
   Picker,
   Easing,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  Dimensions
 } from "react-native";
 import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
 import { Icon } from "react-native-elements";
+
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default class HomeScreen extends Component {
   constructor(props) {
@@ -26,12 +29,14 @@ export default class HomeScreen extends Component {
       isFontLoaded: false,
       randomMovie: [],
       imageRandomMovie: "",
-      pending: false
+      pending: false,
+      step: "1"
     };
-    this.start = this.start.bind(this);
   }
 
   async componentWillMount() {
+    console.log("step ", this.props.navigation.getParam("step", "1"));
+
     await Promise.all([
       await Font.loadAsync({
         "JosefinSans-Regular": require("../assets/fonts/JosefinSans-Regular.ttf"),
@@ -74,137 +79,133 @@ export default class HomeScreen extends Component {
     }
   }
 
-  // animateLeft() {
-  //   this.animatedValueLeft.setValue(0);
-  //   Animated.timing(this.animatedValueLeft, {
-  //     toValue: 1,
-  //     duration: 2000,
-  //     easing: Easing.linear
-  //   }).start(() => this.animateLeft());
-  // }
-
-  // animateRight() {
-  //   this.animatedValueRight.setValue(0);
-  //   Animated.timing(this.animatedValueRight, {
-  //     toValue: 1,
-  //     duration: 2000,
-  //     easing: Easing.linear
-  //   }).start(() => this.animateRight());
-  // }
-
-  start() {
-    this.setState({
-      pending: true
-    });
-
-    const randomPage = Math.floor(Math.random() * 30) + 1;
-    const randomIndex = Math.floor(Math.random() * 20) + 1;
-
-    axios
-      .get(
-        `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=fr-FR&include_adult=false&with_genres=${this.state.categorieChosenId}&sort_by=popularity.desc&page=${randomPage}`
-      )
-      .then(res => {
-        const randomItem = res.data.results[randomIndex];
-        this.setState({
-          randomMovie: randomItem,
-          imageRandomMovie: randomItem.poster_path,
-          pending: false
-        });
-        // console.log("randomitem ", randomItem);
-        // console.log("imageRandomMovie ", this.state.imageRandomMovie);
-        // console.log("randomitem poster ", randomItem.poster_path);
-      })
-      .catch(err => console.log("err ", err));
-
-    // console.log("API KEY ", API_KEY);
-    // console.log("randomPage ", randomPage);
-    // console.log("randomIndex ", randomIndex);
-  }
-
   render() {
     const {
       allCategories,
       categorieChosenName,
       categorieChosenId,
-      isFontLoaded
+      isFontLoaded,
+      step
     } = this.state;
+
     if (isFontLoaded) {
       return (
         <View style={styles.container}>
-          <ScrollView>
-            <ImageBackground
-              source={{
-                uri:
-                  "https://www.transparenttextures.com/patterns/black-linen.png"
-              }}
-              style={{ width: "100%" }}
-            >
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>O'Films</Text>
-                <Text style={styles.subtitle}>Match</Text>
-                <Text style={styles.intro}>
-                  Bienvenue sur l'appli O'Films Match,{"\n"} où vous pouvez
-                  liker ou non des films en fonction de vos goûts.
-                </Text>
-                <Text style={styles.intro}>
-                  Avant de commencer à matcher des films, veuillez sélectionner
-                  ci-dessous au moins une catégorie.
-                </Text>
-                <Text style={styles.intro}>La catégorie choisie :</Text>
-                <Text style={styles.chosen}>{categorieChosenName}</Text>
-                <Picker
-                  itemStyle={{ color: "white" }}
-                  selectedValue={categorieChosenName}
-                  style={{
-                    height: 100,
-                    width: "100%"
-                  }}
-                  onValueChange={(itemValue, itemIndex) =>
-                    this.setState({ categorieChosenName: itemValue })
-                  }
-                >
-                  <Picker.Item label="Sélectionnez une catégorie" value="-" />
-                  {allCategories.map(category => (
-                    <Picker.Item
-                      label={category.name}
-                      key={category.id}
-                      value={category.name}
+          <ImageBackground
+            source={{
+              uri:
+                "https://www.transparenttextures.com/patterns/black-linen.png"
+            }}
+            style={{
+              width: "100%",
+              height: "100%"
+            }}
+          >
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>O'Films</Text>
+              <Text style={styles.subtitle}>Match</Text>
+              {step === "1" && (
+                <>
+                  <Text style={styles.intro}>
+                    Bienvenue sur l'appli O'Films Match,{"\n"} où vous pouvez
+                    liker ou non des films en fonction de vos goûts.
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.buttonContainer}
+                    onPress={() => {
+                      this.setState({ step: "2" });
+                    }}
+                  >
+                    <Icon
+                      size={50}
+                      name="chevron-right-circle"
+                      type="material-community"
+                      color="#0CD0FC"
                     />
-                  ))}
-                </Picker>
-                <TouchableOpacity
-                  style={styles.buttonContainer}
-                  onPress={() => {
-                    categorieChosenName === "-"
-                      ? alert("Veuillez choisir une catégorie")
-                      : this.props.navigation.navigate("Match", {
-                          categorieChosenId: categorieChosenId
-                        });
-                  }}
-                >
-                  <Icon
-                    name="chevron-right-circle"
-                    type="material-community"
-                    color="red"
-                  />
-                  {/* <View style={styles.button}>
+                    {/* <View style={styles.button}>
                     <Text style={styles.buttonText}>Rechercher</Text>
                   </View> */}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.secondButtonContainer}
-                  onPress={() => this.props.navigation.navigate("Test")}
-                >
-                  <View style={styles.button}>
-                    <Text style={styles.buttonText}>
-                      Aller sur la page Test
-                    </Text>
+                  </TouchableOpacity>
+                  {/* <TouchableOpacity
+                    style={styles.secondButtonContainer}
+                    onPress={() => this.props.navigation.navigate("Test")}
+                  >
+                    <View style={styles.button}>
+                      <Text style={styles.buttonText}>
+                        Aller sur la page Test
+                      </Text>
+                    </View>
+                  </TouchableOpacity> */}
+                </>
+              )}
+              {step === "2" && (
+                <>
+                  <Text style={styles.intro}>
+                    Avant de commencer à matcher des films, veuillez
+                    sélectionner ci-dessous au moins une catégorie.
+                  </Text>
+                  <Text style={styles.intro}>La catégorie choisie :</Text>
+                  <Text style={styles.chosen}>{categorieChosenName}</Text>
+                  <Picker
+                    itemStyle={{ color: "white" }}
+                    selectedValue={categorieChosenName}
+                    style={{
+                      height: 100,
+                      width: "100%"
+                    }}
+                    onValueChange={(itemValue, itemIndex) =>
+                      this.setState({ categorieChosenName: itemValue })
+                    }
+                  >
+                    <Picker.Item label="Sélectionnez une catégorie" value="-" />
+                    {allCategories.map(category => (
+                      <Picker.Item
+                        label={category.name}
+                        key={category.id}
+                        value={category.name}
+                      />
+                    ))}
+                  </Picker>
+                  <View
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      justifyContent: "center",
+                      marginTop: 150
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => this.setState({ step: "1" })}
+                    >
+                      <Icon
+                        size={40}
+                        name="chevron-left-circle"
+                        type="material-community"
+                        color="#0CD0FC"
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        categorieChosenName === "-"
+                          ? alert("Veuillez choisir une catégorie")
+                          : this.props.navigation.navigate("Match", {
+                              categorieChosenId: categorieChosenId
+                            });
+                      }}
+                    >
+                      <Icon
+                        size={40}
+                        name="chevron-right-circle"
+                        type="material-community"
+                        color="#0CD0FC"
+                      />
+                    </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
-              </View>
-            </ImageBackground>
-          </ScrollView>
+                </>
+              )}
+            </View>
+          </ImageBackground>
         </View>
       );
     }
@@ -219,10 +220,14 @@ HomeScreen.navigationOptions = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#232D32"
+    backgroundColor: "#232D32",
+    padding: 4
   },
   titleContainer: {
-    marginTop: 30
+    marginTop: 30,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
   title: {
     color: "#0CD0FC",
@@ -248,7 +253,7 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   buttonContainer: {
-    marginTop: 150
+    marginTop: 30
   },
   secondButtonContainer: {
     marginTop: 10
