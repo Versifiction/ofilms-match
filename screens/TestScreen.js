@@ -75,6 +75,15 @@ export default class TestScreen extends Component {
     );
   }
 
+  renderNoMoreCards() {
+    return (
+      <View>
+        <Text>Tout est fait !</Text>
+        <Button>Faire encore</Button>
+      </View>
+    );
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -93,7 +102,11 @@ export default class TestScreen extends Component {
                 <Text style={styles.buttonText}>Revenir à l'accueil </Text>
               </View>
             </TouchableOpacity>
-            <Deck data={DATA} renderCard={this.renderCard} />
+            <Deck
+              data={DATA}
+              renderCard={this.renderCard}
+              renderNoMoreCards={this.renderNoMoreCards}
+            />
           </ImageBackground>
         </ScrollView>
       </View>
