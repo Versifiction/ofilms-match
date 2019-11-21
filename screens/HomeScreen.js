@@ -17,6 +17,8 @@ import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
 import { Icon } from "react-native-elements";
 
+import Nav from "../components/Nav";
+
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default class HomeScreen extends Component {
@@ -35,10 +37,8 @@ export default class HomeScreen extends Component {
   }
 
   async componentWillMount() {
-    console.log("step ", this.props.navigation.getParam("step", "1"));
-
     await Promise.all([
-      await Font.loadAsync({
+      Font.loadAsync({
         "JosefinSans-Regular": require("../assets/fonts/JosefinSans-Regular.ttf"),
         "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf")
       })
@@ -58,9 +58,6 @@ export default class HomeScreen extends Component {
     } catch (error) {
       console.log(error);
     }
-
-    // this.animateLeft();
-    // this.animateRight();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -101,6 +98,7 @@ export default class HomeScreen extends Component {
               height: "100%"
             }}
           >
+            <Nav />
             <View style={styles.titleContainer}>
               <Text style={styles.title}>O'Films</Text>
               <Text style={styles.subtitle}>Match</Text>
@@ -110,7 +108,6 @@ export default class HomeScreen extends Component {
                     Bienvenue sur l'appli O'Films Match,{"\n"} où vous pouvez
                     liker ou non des films en fonction de vos goûts.
                   </Text>
-
                   <TouchableOpacity
                     style={styles.buttonContainer}
                     onPress={() => {
@@ -169,14 +166,14 @@ export default class HomeScreen extends Component {
                   </Picker>
                   <View
                     style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      justifyContent: "center",
+                      flex: 1,
+                      flexDirection: "row",
                       marginTop: 150
                     }}
                   >
                     <TouchableOpacity
                       onPress={() => this.setState({ step: "1" })}
+                      style={{ width: 50, height: 50 }}
                     >
                       <Icon
                         size={40}
@@ -193,6 +190,7 @@ export default class HomeScreen extends Component {
                               categorieChosenId: categorieChosenId
                             });
                       }}
+                      style={{ width: 50, height: 50 }}
                     >
                       <Icon
                         size={40}
@@ -234,14 +232,14 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
     textTransform: "uppercase",
-    alignSelf: "center"
-    // fontFamily: "JosefinSans-Regular"
+    alignSelf: "center",
+    fontFamily: "JosefinSans-Regular"
   },
   subtitle: {
     color: "#DC8873",
     fontSize: 22,
-    alignSelf: "center"
-    // fontFamily: "Raleway-Regular"
+    alignSelf: "center",
+    fontFamily: "Raleway-Regular"
   },
   intro: {
     color: "#95878B",

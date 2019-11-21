@@ -21,12 +21,15 @@ import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
 import { Icon } from "react-native-elements";
 import moment from "moment";
+import { bindActionCreators } from "redux";
+import { addFilm } from "../FilmsActions";
+import { connect } from "react-redux";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
 const SWIPE_OUT_DURATION = 250;
 
-export default class MatchScreen extends Component {
+class MatchScreen extends Component {
   constructor(props) {
     super(props);
 
@@ -38,10 +41,8 @@ export default class MatchScreen extends Component {
       },
       onPanResponderRelease: (event, gesture) => {
         if (gesture.dx > SWIPE_THRESHOLD) {
-          console.log("swipe right");
           this.forceSwipe("right");
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
-          console.log("swipe left");
           this.forceSwipe("left");
         } else {
           this.resetPosition();
@@ -68,7 +69,6 @@ export default class MatchScreen extends Component {
   }
 
   componentWillMount() {
-    console.log("componentWillMount");
     // await Font.loadAsync({
     //   "JosefinSans-Regular": require("../assets/fonts/JosefinSans-Regular.ttf"),
     //   "Raleway-Regular": require("../assets/fonts/Raleway-Regular.ttf")
@@ -77,21 +77,16 @@ export default class MatchScreen extends Component {
   }
 
   async componentDidMount() {
-    console.log("componentDidMount");
     this.loadMovie();
   }
 
   loadMovie() {
-    console.log("loadMovie");
     this.setState({
       pending: true
     });
 
     const randomPage = Math.floor(Math.random() * 30) + 1;
     const randomIndex = Math.floor(Math.random() * 19) + 1;
-
-    console.log("randomPage ", randomPage);
-    console.log("randomIndex ", randomIndex);
 
     axios
       .get(
@@ -119,7 +114,6 @@ export default class MatchScreen extends Component {
   // }
 
   forceSwipe(direction) {
-    console.log("forceSwipe");
     const x = direction === "right" ? SCREEN_WIDTH : -SCREEN_WIDTH;
     Animated.timing(this.state.position, {
       toValue: { x, y: 0 },
@@ -128,7 +122,6 @@ export default class MatchScreen extends Component {
   }
 
   onSwipeComplete(direction) {
-    console.log("onSwipeComplete");
     const { onSwipeLeft, onSwipeRight } = this.props;
 
     direction === "right" ? this.onSwipeRight() : this.onSwipeLeft();
@@ -136,8 +129,10 @@ export default class MatchScreen extends Component {
   }
 
   onSwipeRight() {
-    console.log("onSwipeRight");
-    this.setState({ message: "Le film a été ajouté aux likes" });
+    this.props.addFilm(this.state.randomMovie.id, "like");
+    this.setState({
+      message: `${this.state.randomMovie.title} a été ajouté aux likes`
+    });
     this.loadMovie();
     setTimeout(() => {
       this.setState({ message: "" });
@@ -145,8 +140,10 @@ export default class MatchScreen extends Component {
   }
 
   onSwipeLeft() {
-    console.log("onSwipeLeft");
-    this.setState({ message: "Le film a été ajouté aux dislikes" });
+    this.props.addFilm(this.state.randomMovie.id, "dislike");
+    this.setState({
+      message: `${this.state.randomMovie.title} Le film a été ajouté aux dislikes`
+    });
     this.loadMovie();
     setTimeout(() => {
       this.setState({ message: "" });
@@ -154,7 +151,6 @@ export default class MatchScreen extends Component {
   }
 
   resetPosition() {
-    console.log("resetPosition");
     Animated.spring(this.state.position, {
       toValue: { x: 0, y: 0 }
     }).start();
@@ -174,8 +170,6 @@ export default class MatchScreen extends Component {
   }
 
   render() {
-    console.log("render");
-    console.log("---");
     const {
       allCategories,
       categorieChosenName,
@@ -378,3 +372,18 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH
   }
 });
+
+const mapStateToProps = state => {
+  const { likedFilms, dislikedFilms } = state;
+  return { likedFilms, dislikedFilms };
+};
+
+const mapDispatchToProps = dispatch =>
+  bindActionCreators(
+    {
+      addFilm
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(MatchScreen);
