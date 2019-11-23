@@ -3,8 +3,8 @@ import { ADD_FILM, REMOVE_FILM } from "./types";
 
 const initialState = {
   name: "",
-  likedFilms: [299534, 49530, 629, 475557],
-  dislikedFilms: [100241, 559969]
+  likedFilms: [299534, 49530, 629],
+  dislikedFilms: [100241, 559969, 429617]
 };
 
 const filmsReducer = (state = initialState, action) => {

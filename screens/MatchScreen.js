@@ -88,30 +88,52 @@ class MatchScreen extends Component {
     const randomPage = Math.floor(Math.random() * 30) + 1;
     const randomIndex = Math.floor(Math.random() * 19) + 1;
 
+    // const randomPage = 1;
+    // const randomIndex = Math.floor(Math.random() * 2) + 1;
+
     axios
       .get(
         `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=fr-FR&include_adult=false&with_genres=${this.state.categorieChosenId}&sort_by=popularity.desc&page=${randomPage}`
       )
       .then(res => {
         const randomItem = res.data.results[randomIndex];
-        this.setState({
-          randomMovie: randomItem,
-          imageRandomMovie:
-            randomItem.poster_path === null
-              ? "https://via.placeholder.com/200x300/2C2F33/FFFFFF/png?text=Image+non+disponible"
-              : randomItem.poster_path,
-          pending: false
-        });
+        if (
+          !this.props.likedFilms.includes(randomItem.id) &&
+          !this.props.dislikedFilms.includes(randomItem.id)
+        ) {
+          console.log("randomItem ", randomItem.id);
+          console.log("likedFilms ", this.props.likedFilms);
+          console.log(
+            "film is in likedFilms ",
+            this.props.likedFilms.includes(randomItem.id)
+          );
+          console.log("dislikedFilms ", this.props.dislikedFilms);
+          console.log(
+            "film is in dislikedFilms ",
+            this.props.dislikedFilms.includes(randomItem.id)
+          );
+          console.log("---");
+          this.setState({
+            randomMovie: randomItem,
+            imageRandomMovie:
+              randomItem.poster_path === null
+                ? "https://via.placeholder.com/200x300/2C2F33/FFFFFF/png?text=Image+non+disponible"
+                : randomItem.poster_path,
+            pending: false
+          });
+        } else {
+          this.loadMovie();
+        }
       })
       .catch(err => console.log("err ", err));
   }
 
-  // componentWillUpdate() {
-  //   UIManager.setLayoutAnimationEnabledExperimental &&
-  //     UIManager.setLayoutAnimationEnabledExperimental(true);
+  componentWillUpdate() {
+    UIManager.setLayoutAnimationEnabledExperimental &&
+      UIManager.setLayoutAnimationEnabledExperimental(true);
 
-  //   LayoutAnimation.spring();
-  // }
+    LayoutAnimation.spring();
+  }
 
   forceSwipe(direction) {
     const x = direction === "right" ? SCREEN_WIDTH : -SCREEN_WIDTH;
@@ -194,6 +216,16 @@ class MatchScreen extends Component {
           }}
         >
           <ActivityIndicator size="large" color="#0CD0FC" />
+          <TouchableOpacity
+            onPress={() =>
+              this.props.navigation.navigate("Home", { step: "1" })
+            }
+            style={{ marginTop: 50 }}
+          >
+            <View style={styles.button}>
+              <Text style={styles.buttonText}>Revenir à l'accueil</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -373,10 +405,10 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapStateToProps = state => {
-  const { likedFilms, dislikedFilms } = state;
-  return { likedFilms, dislikedFilms };
-};
+const mapStateToProps = state => ({
+  likedFilms: state.films.likedFilms,
+  dislikedFilms: state.films.dislikedFilms
+});
 
 const mapDispatchToProps = dispatch =>
   bindActionCreators(

@@ -75,50 +75,53 @@ class LikedScreen extends Component {
     if (isFontLoaded) {
       return (
         <View style={styles.container}>
-          <ScrollView>
-            <ImageBackground
-              source={{
-                uri:
-                  "https://www.transparenttextures.com/patterns/black-linen.png"
-              }}
+          <ImageBackground
+            source={{
+              uri:
+                "https://www.transparenttextures.com/patterns/black-linen.png"
+            }}
+            style={{
+              width: "100%",
+              height: "100%"
+            }}
+          >
+            <Nav />
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>O'Films</Text>
+              <Text style={styles.subtitle}>Match</Text>
+              <Text style={styles.intro}>Likés</Text>
+            </View>
+            <View
               style={{
-                width: "100%",
-                height: "100%"
+                flex: "1",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                marginTop: 20
               }}
             >
-              <Nav />
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>O'Films</Text>
-                <Text style={styles.subtitle}>Match</Text>
-                <Text style={styles.intro}>Likés</Text>
+              {this.state.moviesLikedDetails.map((movie, index) => (
+                <Image
+                  style={{
+                    width: "33%",
+                    height: 150,
+                    padding: 4
+                  }}
+                  key={movie.id}
+                  source={{
+                    uri: `http://image.tmdb.org/t/p/w200${this.state.moviesLikedDetails[index].poster_path}`
+                  }}
+                ></Image>
+              ))}
+            </View>
+            <TouchableOpacity
+              onPress={() => this.props.navigation.navigate("Home")}
+              style={{ marginTop: 50 }}
+            >
+              <View style={styles.button}>
+                <Text style={styles.buttonText}>Revenir à l'accueil</Text>
               </View>
-              <View
-                style={{ flex: "1", flexDirection: "row", flexWrap: "wrap" }}
-              >
-                {this.state.moviesLikedDetails.map((movie, index) => (
-                  <Image
-                    style={{
-                      width: "33%",
-                      height: 150,
-                      padding: 4
-                    }}
-                    key={movie.id}
-                    source={{
-                      uri: `http://image.tmdb.org/t/p/w200${this.state.moviesLikedDetails[index].poster_path}`
-                    }}
-                  ></Image>
-                ))}
-              </View>
-              <TouchableOpacity
-                onPress={() => this.props.navigation.navigate("Home")}
-                style={{ marginTop: 50 }}
-              >
-                <View style={styles.button}>
-                  <Text style={styles.buttonText}>Revenir à l'accueil</Text>
-                </View>
-              </TouchableOpacity>
-            </ImageBackground>
-          </ScrollView>
+            </TouchableOpacity>
+          </ImageBackground>
         </View>
       );
     }
@@ -159,7 +162,7 @@ const styles = StyleSheet.create({
   intro: {
     color: "white",
     marginTop: 20,
-    fontSize: 30,
+    fontSize: 24,
     textAlign: "center",
     textTransform: "uppercase"
   },

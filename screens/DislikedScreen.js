@@ -91,7 +91,14 @@ class DislikedScreen extends Component {
               <Text style={styles.subtitle}>Match</Text>
               <Text style={styles.intro}>Dislikés</Text>
             </View>
-            <View style={{ flex: "1", flexDirection: "row", flexWrap: "wrap" }}>
+            <View
+              style={{
+                flex: "1",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                marginTop: 20
+              }}
+            >
               {this.state.moviesDislikedDetails.map((movie, index) => (
                 <Image
                   style={{
@@ -155,7 +162,7 @@ const styles = StyleSheet.create({
   intro: {
     color: "white",
     marginTop: 20,
-    fontSize: 30,
+    fontSize: 24,
     textAlign: "center",
     textTransform: "uppercase"
   },
