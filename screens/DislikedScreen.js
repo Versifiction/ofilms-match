@@ -11,12 +11,15 @@ import {
   Easing,
   ScrollView,
   ActivityIndicator,
-  Dimensions
+  Dimensions,
+  Alert
 } from "react-native";
 import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
 import { Icon } from "react-native-elements";
 import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import { removeFilm } from "../FilmsActions";
 
 import Nav from "../components/Nav";
 
@@ -63,6 +66,32 @@ class DislikedScreen extends Component {
     });
   }
 
+  showModal(title, id) {
+    this.setState({
+      moviesDislikedDetails: []
+    });
+
+    Alert.alert(
+      "Suppresion",
+      `Voulez-vous supprimer ${title} de vos dislikes ?`,
+      [
+        {
+          text: "Valider",
+          onPress: () => {
+            this.props.removeFilm(id, "dislike");
+            this.loadMoviesDislikedDetails();
+          }
+        },
+        {
+          text: "Annuler",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
+  }
+
   render() {
     const {
       allCategories,
@@ -100,17 +129,30 @@ class DislikedScreen extends Component {
               }}
             >
               {this.state.moviesDislikedDetails.map((movie, index) => (
-                <Image
+                <TouchableOpacity
+                  key={movie.id}
+                  onLongPress={() =>
+                    this.showModal(
+                      this.state.moviesDislikedDetails[index].title,
+                      this.state.moviesDislikedDetails[index].id
+                    )
+                  }
                   style={{
                     width: "33%",
                     height: 150,
                     padding: 4
                   }}
-                  key={movie.id}
-                  source={{
-                    uri: `http://image.tmdb.org/t/p/w200${this.state.moviesDislikedDetails[index].poster_path}`
-                  }}
-                ></Image>
+                >
+                  <Image
+                    style={{
+                      width: "100%",
+                      height: "100%"
+                    }}
+                    source={{
+                      uri: `http://image.tmdb.org/t/p/w200${this.state.moviesDislikedDetails[index].poster_path}`
+                    }}
+                  ></Image>
+                </TouchableOpacity>
               ))}
             </View>
             <TouchableOpacity
@@ -223,4 +265,13 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
   dislikedFilms: state.films.dislikedFilms
 });
-export default connect(mapStateToProps)(DislikedScreen);
+
+const mapDispatchToProps = dispatch =>
+  bindActionCreators(
+    {
+      removeFilm
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(DislikedScreen);

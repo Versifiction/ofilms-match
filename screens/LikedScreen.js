@@ -11,12 +11,15 @@ import {
   Easing,
   ScrollView,
   ActivityIndicator,
-  Dimensions
+  Dimensions,
+  Alert
 } from "react-native";
 import { API_KEY } from "react-native-dotenv";
 import * as Font from "expo-font";
 import { Icon } from "react-native-elements";
 import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import { removeFilm } from "../FilmsActions";
 
 import Nav from "../components/Nav";
 
@@ -45,6 +48,10 @@ class LikedScreen extends Component {
   }
 
   async loadMoviesLikedDetails() {
+    this.setState({
+      moviesLikedDetails: []
+    });
+
     this.props.likedFilms.forEach(async movie => {
       try {
         const dataDetail = await axios.get(
@@ -61,6 +68,28 @@ class LikedScreen extends Component {
         console.log(error);
       }
     });
+  }
+
+  showModal(title, id) {
+    Alert.alert(
+      "Suppresion",
+      `Voulez-vous supprimer ${title} de vos likes ?`,
+      [
+        {
+          text: "Valider",
+          onPress: () => {
+            this.props.removeFilm(id, "like");
+            this.loadMoviesLikedDetails();
+          }
+        },
+        {
+          text: "Annuler",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        }
+      ],
+      { cancelable: false }
+    );
   }
 
   render() {
@@ -100,17 +129,30 @@ class LikedScreen extends Component {
               }}
             >
               {this.state.moviesLikedDetails.map((movie, index) => (
-                <Image
+                <TouchableOpacity
+                  key={movie.id}
+                  onLongPress={() =>
+                    this.showModal(
+                      this.state.moviesLikedDetails[index].title,
+                      this.state.moviesLikedDetails[index].id
+                    )
+                  }
                   style={{
                     width: "33%",
                     height: 150,
                     padding: 4
                   }}
-                  key={movie.id}
-                  source={{
-                    uri: `http://image.tmdb.org/t/p/w200${this.state.moviesLikedDetails[index].poster_path}`
-                  }}
-                ></Image>
+                >
+                  <Image
+                    style={{
+                      width: "100%",
+                      height: "100%"
+                    }}
+                    source={{
+                      uri: `http://image.tmdb.org/t/p/w200${this.state.moviesLikedDetails[index].poster_path}`
+                    }}
+                  ></Image>
+                </TouchableOpacity>
               ))}
             </View>
             <TouchableOpacity
@@ -223,4 +265,13 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
   likedFilms: state.films.likedFilms
 });
-export default connect(mapStateToProps)(LikedScreen);
+
+const mapDispatchToProps = dispatch =>
+  bindActionCreators(
+    {
+      removeFilm
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(LikedScreen);
